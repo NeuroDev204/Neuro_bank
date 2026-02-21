@@ -42,6 +42,15 @@ public class GlobalExceptionHandler {
         .body(ApiResponse.error(403, "FORBIDDEN", "Access denied"));
   }
 
+  @ExceptionHandler(NewDeviceException.class)
+  public ResponseEntity<ApiResponse<Map<String, String>>> handleNewDevice(NewDeviceException ex) {
+    Map<String, String> data = Map.of("userId", ex.getUserId().toString());
+    return ResponseEntity.status(202)
+        .body(ApiResponse.<Map<String, String>>builder()
+            .success(false).code(202)
+            .message(ex.getMessage())
+            .data(data).build());
+  }
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
     log.error("Unhandled exception: ", ex);

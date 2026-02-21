@@ -7,19 +7,21 @@ public class BusinessException extends RuntimeException {
   private final int code;
   private final String errorKey;
 
-  public BusinessException(String message){
+  public BusinessException(String message) {
     super(message);
     this.code = 400;
-    this.errorKey ="BUSINESS_ERROR";
+    this.errorKey = "BUSINESS_ERROR";
   }
-  public BusinessException(int code, String message){
+
+  public BusinessException(int code, String message) {
     super(message);
     this.code = code;
     this.errorKey = "BUSINESS_ERROR";
   }
-  public BusinessException(int code, String errorKey,String message){
+
+  public BusinessException(int code, String errorKey, String message) {
     super(message);
-    this.code  = code;
+    this.code = code;
     this.errorKey = errorKey;
   }
 
@@ -42,4 +44,9 @@ public class BusinessException extends RuntimeException {
   public static BusinessException badRequest(String message) {
     return new BusinessException(400, "BAD_REQUEST", message);
   }
+
+  public static BusinessException toManyRequests(String message) {
+    return new BusinessException(429, "TO_MANY_REQUESTS", message);
+  }
 }
+

@@ -2,11 +2,32 @@ spring:
   application:
     name: Neuro_Bank
 
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        connection-timeout: 5000
+        timeout: 5000
+        write-timeout: 5000
+  main:
+    banner-mode: off
+    lazy-initialization: true
+    log-startup-info: false
+
   datasource:
     url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:neuro_bank}
     username: ${DATABASE_USERNAME:root}
     password: ${DATABASE_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
+
   security:
     oauth2:
       resourceserver:
@@ -14,19 +35,36 @@ spring:
           public-key-location: classpath:certs/public.pem
 
   jpa:
-    show-sql: true
+    show-sql: false
+    open-in-view: false
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+      connect-timeout: 2s
+
 server:
   port: ${SERVER_PORT:8000}
-
 
 app:
   jwt:
     private-key-location: classpath:certs/private.pem
-    access-token-expiry: 900 #15p
+    access-token-expiry: 900
     refresh-token-expiry: 604800
     issuer: banking-app
     cookie:
-      domain: ${COOKIE_DOMAIN}
-      secure: ${COOKIE_SECURE}
+      domain: ${COOKIE_DOMAIN:localhost}
+      secure: ${COOKIE_SECURE:false}
+  mail:
+    from: noreply@neurobank.com
+    from-name: Neuro Bank
+    base-url: http://localhost:3000

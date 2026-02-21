@@ -15,4 +15,8 @@ public class LoginRequest {
   @NotBlank
   @Size(min = 8,max = 100)
   private String password;
+
+  // SHA-256(userAgent + screenResolution + timezone + platform) — tính từ client
+  @Size(max = 64)
+  private String deviceFingerprint;
 }

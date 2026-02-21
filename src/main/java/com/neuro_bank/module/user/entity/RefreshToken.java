@@ -20,24 +20,35 @@ import java.time.LocalDateTime;
 public class RefreshToken extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
-  User user;
+  private User user;
 
-  @Column(nullable = false, unique = true, length = 512)
-  String tokenHash;
-  @Column(nullable = false)
-  LocalDateTime expiresAt;
-  String userAgent;
-  @Column(nullable = false)
-  @Builder.Default
-  boolean revoked = false;
+  @Column(nullable = false, unique = true, length = 64)
+  private String tokenHash;       // SHA-256 của raw token
 
-  LocalDateTime revokedAt;
+  @Column(nullable = false)
+  private LocalDateTime expiresAt;
+
+  @Column(nullable = false)
+  private boolean revoked = false;
+
+  private LocalDateTime revokedAt;
+
+  @Column(nullable = false, length = 36)
+  private String familyId;        // group các token cùng login session
+
+  @Column(nullable = false)
+  private int generation = 1;     // tăng mỗi lần rotate
+
+  @Column(nullable = false, length = 36)
+  private String sessionId;
 
   @Column(length = 45)
-  String ipAddress;
-  @Column(length = 255)
-  String deviceInfo;
-  @Column(length = 50)
-  String deviceId;
+  private String ipAddress;
 
+  @Column(length = 500)
+  private String userAgent;
+
+  @Column(length = 50)
+  private String deviceId;
 }
+

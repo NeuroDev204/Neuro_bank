@@ -18,20 +18,30 @@ import java.time.LocalDateTime;
 public class UserCredential extends BaseEntity {
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false, unique = true)
-  User user;
+  private User user;
 
   @Column(nullable = false)
-  String passwordHash;
+  private String passwordHash;   // Argon2id
+
   @Column(nullable = false)
-  String pinHash; // 6-digit pin to confirm transaction
+  private String pinHash;        // Argon2id với iterations cao hơn
+
   @Column(nullable = false)
-  @Builder.Default
-  int failedPinAttempts = 0;
-  LocalDateTime lockedUntil;
+
+  private int failedLoginAttempts = 0;
+
   @Column(nullable = false)
-  @Builder.Default
-  boolean towFactorEnabled = false;
-  LocalDateTime lastLoginAt;
+  private int failedPinAttempts = 0;
+
+  private LocalDateTime lockedUntil;
+
+  @Column(nullable = false)
+  private boolean twoFactorEnabled = false;
+
+  private String twoFactorSecret; // TOTP secret — AES encrypted
+
+  private LocalDateTime lastLoginAt;
+
   @Column(length = 45)
-  String lastLoginIp;
+  private String lastLoginIp;
 }

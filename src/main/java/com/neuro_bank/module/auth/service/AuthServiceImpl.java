@@ -3,7 +3,6 @@ package com.neuro_bank.module.auth.service;
 import com.neuro_bank.common.enums.UserStatus;
 import com.neuro_bank.module.auth.dto.request.LoginRequest;
 import com.neuro_bank.module.auth.dto.response.LoginResponse;
-import com.neuro_bank.module.user.dto.response.UserResponse;
 import com.neuro_bank.module.user.entity.RefreshToken;
 import com.neuro_bank.module.user.entity.User;
 import com.neuro_bank.module.user.entity.UserCredential;
@@ -26,42 +25,39 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
-public class AuthServiceImpl implements AuthService{
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class AuthServiceImpl implements AuthService {
 
+  private static final int MAX_FAILED_ATTEMPTS = 5;
+  private static final int LOCK_DURATION_MINUTES = 30;
   UserRepository userRepository;
   UserCredentialRepository userCredentialRepository;
   RefreshTokenRepository refreshTokenRepository;
   JwtTokenProvider jwtTokenProvider;
   PasswordEncoder passwordEncoder;
 
-  private static final int MAX_FAILED_ATTEMPTS =5;
-  private static final int LOCK_DURATION_MINUTES =30;
-
-
-  public record LoginResult(String accessToken, String refreshToken, UserResponse response){}
   @Override
   public LoginResponse login(LoginRequest request, String ipAddress, String userAgent) {
     User user = userRepository.findByEmailWithCredential(request.getEmail())
         .orElseThrow(() -> new RuntimeException("Invalid credentials"));
     UserCredential credential = user.getCredential();
     // check account bi lock chua
-    if(credential.getLockedUntil() != null &&
-    credential.getLockedUntil().isAfter(LocalDateTime.now())){
+    if (credential.getLockedUntil() != null &&
+        credential.getLockedUntil().isAfter(LocalDateTime.now())) {
       long minutesLeft = ChronoUnit.MINUTES.between(
           LocalDateTime.now(), credential.getLockedUntil());
       throw new RuntimeException("Account locked. Try again in " + minutesLeft);
     }
     // verify password
-    if(!passwordEncoder.matches(request.getPassword(), credential.getPasswordHash())){
-      handleFailedLogin(credential,user,ipAddress);
+    if (!passwordEncoder.matches(request.getPassword(), credential.getPasswordHash())) {
+      handleFailedLogin(credential, user, ipAddress);
       throw new RuntimeException("Invalid credentials");
     }
     //check user status
-    if(user.getStatus() == UserStatus.SUSPENDED){
+    if (user.getStatus() == UserStatus.SUSPENDED) {
       throw new RuntimeException("Account suspended");
     }
-    if(user.getStatus() == UserStatus.PENDING_VERIFICATION){
+    if (user.getStatus() == UserStatus.PENDING_VERIFICATION) {
       throw new RuntimeException("Please verify your account");
     }
     //reset failed attempts
@@ -71,9 +67,9 @@ public class AuthServiceImpl implements AuthService{
     credential.setLastLoginIp(ipAddress);
     userCredentialRepository.save(credential);
 
-    String accessToken = jwtTokenProvider.generateAccessToken(user);
-    String refreshToken = jwtTokenProvider.generateRefreshToken(user);
-    saveRefreshToken(user,refreshToken,ipAddress,userAgent);
+//    String accessToken = jwtTokenProvider.generateAccessToken(user);
+//    String refreshToken = jwtTokenProvider.generateRefreshToken(user);
+//    saveRefreshToken(user,refreshToken,ipAddress,userAgent);
 
     return null;
     //return new LoginResult(accessToken,refreshToken,)
@@ -88,17 +84,19 @@ public class AuthServiceImpl implements AuthService{
   public void logout(String refreshToken, UUID userId) {
 
   }
-  private void handleFailedLogin(UserCredential credential,User user, String ip){
-    int attempts = credential.getFailedPinAttempts() +1;
+
+  private void handleFailedLogin(UserCredential credential, User user, String ip) {
+    int attempts = credential.getFailedPinAttempts() + 1;
     credential.setFailedPinAttempts(attempts);
-    if(attempts >= MAX_FAILED_ATTEMPTS){
+    if (attempts >= MAX_FAILED_ATTEMPTS) {
       credential.setLockedUntil(
           LocalDateTime.now().plusMinutes(LOCK_DURATION_MINUTES)
       );
     }
     userCredentialRepository.save(credential);
   }
-  private void saveRefreshToken(User user,String token, String ip,String userAgent){
+
+  private void saveRefreshToken(User user, String token, String ip, String userAgent) {
     RefreshToken entity = new RefreshToken();
     entity.setUser(user);
     entity.setTokenHash(hashToken(token));
@@ -107,7 +105,8 @@ public class AuthServiceImpl implements AuthService{
     entity.setUserAgent(userAgent);
     refreshTokenRepository.save(entity);
   }
-  private String hashToken(String token){
+
+  private String hashToken(String token) {
     // sha-256 hash
     return DigestUtils.sha256Hex(token);
   }

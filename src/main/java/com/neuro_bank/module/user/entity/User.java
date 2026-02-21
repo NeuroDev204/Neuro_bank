@@ -61,5 +61,8 @@ public class User extends SoftDeletableEntity {
 
   @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
   List<AuditLog> auditLogs = new ArrayList<>();
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<UserDevice> devices = new ArrayList<>();
 }
 
