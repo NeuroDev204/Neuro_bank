@@ -21,21 +21,24 @@ public class UserCredential extends BaseEntity {
   private User user;
 
   @Column(nullable = false)
-  private String passwordHash;   // Argon2id
+  private String passwordHash; // Argon2id
 
   @Column(nullable = false)
-  private String pinHash;        // Argon2id với iterations cao hơn
+  private String pinHash; // Argon2id với iterations cao hơn
 
   @Column(nullable = false)
 
+  @Builder.Default
   private int failedLoginAttempts = 0;
 
   @Column(nullable = false)
+  @Builder.Default
   private int failedPinAttempts = 0;
 
   private LocalDateTime lockedUntil;
 
   @Column(nullable = false)
+  @Builder.Default
   private boolean twoFactorEnabled = false;
 
   private String twoFactorSecret; // TOTP secret — AES encrypted

@@ -13,21 +13,23 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
   // fetch credential cung luc de tranh lazyinit exception
   @Query("""
-    SELECT u from User u
-    LEFT JOIN FETCH u.credential
-    where u.email = :email and u.deleted = false
-""")
+          SELECT u from User u
+          LEFT JOIN FETCH u.credential
+          where u.email = :email and u.deleted = false
+      """)
   Optional<User> findByEmailWithCredential(@Param("email") String email);
 
   @Query("""
-    SELECT u FROM User u
-    LEFT JOIN FETCH u.credential
-    WHERE u.id = :id AND u.deleted = false
-""")
+          SELECT u FROM User u
+          LEFT JOIN FETCH u.credential
+          WHERE u.id = :id AND u.deleted = false
+      """)
   Optional<User> findByIdWithCredential(@Param("id") UUID id);
 
-  boolean existsByEmail(String email);
-  boolean existsByPhone(String phone);
-  boolean existsByNationalId(String nationalId);
+  boolean existsByEmailAndDeletedFalse(String email);
+
+  boolean existsByPhoneAndDeletedFalse(String phone);
+
+  boolean existsByNationalIdAndDeletedFalse(String nationalId);
 
 }

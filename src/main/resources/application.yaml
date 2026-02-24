@@ -3,10 +3,10 @@ spring:
     name: Neuro_Bank
 
   mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:blur.socialnetwork@gmail.com}
+    password: ${MAIL_PASSWORD:andb wbaq ndls fadn}
     properties:
       mail:
         smtp:
@@ -38,7 +38,7 @@ spring:
     show-sql: false
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
