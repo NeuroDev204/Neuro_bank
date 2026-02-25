@@ -43,7 +43,8 @@ public class OtpServiceImpl implements OtpService {
     otp.setCode(codeHash);
     otp.setType(type);
     otp.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
-    emailService.sendOtp(user.getEmail(), user.getFullName(), codeHash);
+    otpRepository.save(otp);
+    emailService.sendOtp(user.getEmail(), user.getFullName(), code, type);
   }
 
   @Override

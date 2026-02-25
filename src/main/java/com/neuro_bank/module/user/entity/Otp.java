@@ -22,9 +22,9 @@ public class Otp extends BaseEntity {
   @JoinColumn(name = "user_id", nullable = false)
   User user;
 
-  @Column(nullable = false, length = 10)
+  @Column(nullable = false, length = 255)
   String code;
-  @Column(nullable = false, length =  30)
+  @Column(nullable = false, length = 30)
   String type;
   @Column(nullable = false)
   LocalDateTime expiresAt;

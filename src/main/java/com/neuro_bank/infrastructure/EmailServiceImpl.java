@@ -10,8 +10,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +29,22 @@ public class EmailServiceImpl implements EmailService {
 
   @Override
   @Async("emailExecutor") // dung async de khong block request
-  public void sendOtp(String toEmail, String fullName, String otpCode) {
-
+  public void sendOtp(String toEmail, String fullName, String otpCode, String type) {
+    String subject = resolveSubject(type);
+    String message = resolveMessage(type);
+    Context context = new Context();
+    context.setVariables(Map.of(
+        "fullName", fullName,
+        "otpCode", otpCode,
+        "message", message,
+        "expiryMinutes", 5));
+    String html = templateEngine.process("email/otp", context);
+    try {
+      sendHtml(toEmail, subject, html);
+    } catch (MessagingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   private void sendHtml(String toEmail, String subject, String htmlContetn) throws MessagingException {
@@ -40,6 +56,7 @@ public class EmailServiceImpl implements EmailService {
       helper.setTo(toEmail);
       helper.setSubject(subject);
       helper.setText(htmlContetn, true);
+      mailSender.send(message);
     } catch (MessagingException | UnsupportedEncodingException exception) {
       log.error("Failed to send email to={} subject={}", toEmail, subject, exception);
     }
@@ -64,9 +81,18 @@ public class EmailServiceImpl implements EmailService {
     };
   }
 
-
   @Override
+  @Async("emailExecutor")
   public void sendWelcome(String toEmail, String fullName) {
-
+    Context ctx = new Context();
+    ctx.setVariables(Map.of("fullName", fullName));
+    String html = templateEngine.process("email/welcome", ctx);
+    try {
+      sendHtml(toEmail, "Welcome to YourBank!", html);
+    } catch (MessagingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
+
 }

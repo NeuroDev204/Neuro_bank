@@ -117,23 +117,67 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public RefreshResult refreshAccessToken(String refreshToken, String ipAddress, String deviceFingerprint) {
+
     JWTClaimsSet claimsSet = jwtTokenProvider.parseToken(refreshToken);
+
     if (!"REFRESH".equals(claimsSet.getClaim("tokenType"))) {
       throw BusinessException.unauthorized("Invalid token type");
     }
+
     String tokenDevice = (String) claimsSet.getClaim("deviceFingerprint");
+
     if (deviceFingerprint != null && !deviceFingerprint.equals(tokenDevice)) {
       throw BusinessException.unauthorized("Device mismatch detected");
     }
-    RefreshToken stored = refreshTokenRepository.findByTokenHash(DigestUtils.sha256Hex(refreshToken))
+
+    RefreshToken stored = refreshTokenRepository
+        .findByTokenHash(DigestUtils.sha256Hex(refreshToken))
         .orElseThrow(() -> BusinessException.unauthorized("Refresh token not found"));
+
+    if (stored.getExpiresAt().isBefore(LocalDateTime.now())) {
+      throw BusinessException.unauthorized("Refresh token expired");
+    }
+
     if (stored.isRevoked()) {
+
       refreshTokenRepository.revokeByFamilyId(stored.getFamilyId(), LocalDateTime.now());
-      auditLogService.longAsync(stored.getUser(), "REFRESH_TOKEN_REUSE", "USER",
-          stored.getUser().getId(), false, ipAddress, null);
+
+      auditLogService.longAsync(
+          stored.getUser(),
+          "REFRESH_TOKEN_REUSE",
+          "USER",
+          stored.getUser().getId(),
+          false,
+          ipAddress,
+          null
+      );
+
       throw BusinessException.unauthorized("Security violation. Please login again");
     }
-    return null;
+
+    stored.setRevoked(true);
+    stored.setRevokedAt(LocalDateTime.now());
+    refreshTokenRepository.save(stored);
+
+    String newAccessToken = jwtTokenProvider.generateAccessToken(stored.getUser(), deviceFingerprint, stored.getSessionId());
+
+    String newRefreshToken = jwtTokenProvider.generateRefreshToken(
+        stored.getUser(),
+        deviceFingerprint,
+        stored.getSessionId()
+    );
+
+    saveRefreshToken(
+        stored.getUser(),
+        newRefreshToken,
+        ipAddress,
+        stored.getUserAgent(),
+        stored.getFamilyId(),
+        stored.getGeneration() + 1,
+        stored.getSessionId()
+    );
+
+    return new RefreshResult(newAccessToken, newRefreshToken);
   }
 
   @Override
@@ -190,7 +234,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private void saveRefreshToken(User user, String token, String ip, String userAgent, String familyId, int generation,
-      String sessionId) {
+                                String sessionId) {
     RefreshToken entity = new RefreshToken();
     entity.setUser(user);
     entity.setTokenHash(DigestUtils.sha256Hex(token));
