@@ -32,4 +32,20 @@ public class RateLimiterService {
   public void checkOtpSendRateLimit(UUID userId, String type) {
     checkRateLimit("rate:otp:send:" + userId + ":" + type, 3, Duration.ofMinutes(15));
   }
+
+  public void checkTransactionCreateRateLimitByUser(UUID userId) {
+    checkRateLimit("rate:txn:create:user:" + userId, 5, Duration.ofMinutes(1));
+  }
+
+  public void checkTransactionCreateRateLimitByIp(String ip) {
+    checkRateLimit("rate:txn:create:ip:" + ip, 30, Duration.ofMinutes(10));
+  }
+
+  public void checkTransactionReverseRateLimitByUser(UUID userId) {
+    checkRateLimit("rate:txn:reverse:user:" + userId, 3, Duration.ofMinutes(10));
+  }
+
+  public void checkTransactionOtpVerifyRateLimit(UUID transactionId) {
+    checkRateLimit("rate:txn:opt:verify:" + transactionId, 5, Duration.ofMinutes(5));
+  }
 }

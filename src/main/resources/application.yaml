@@ -23,9 +23,9 @@ spring:
     log-startup-info: false
 
   datasource:
-    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:neuro_bank}
-    username: ${DATABASE_USERNAME:root}
-    password: ${DATABASE_PASSWORD:root}
+    url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   security:
@@ -47,13 +47,13 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
       timeout: 2s
       connect-timeout: 2s
 
 server:
-  port: ${SERVER_PORT:8000}
+  port: ${SERVER_PORT}
 
 app:
   jwt:
@@ -62,9 +62,28 @@ app:
     refresh-token-expiry: 604800
     issuer: banking-app
     cookie:
-      domain: ${COOKIE_DOMAIN:localhost}
-      secure: ${COOKIE_SECURE:false}
+      domain: ${COOKIE_DOMAIN}
+      secure: ${COOKIE_SECURE}
   mail:
     from: noreply@neurobank.com
     from-name: Neuro Bank
     base-url: http://localhost:3000
+  transaction:
+    hash:
+      secret: ${TXN_HASH_SECRET}
+    iempotency:
+      ttl_seconds: ${TXN_IDEMPOTENCY_TTL_SECOND}
+    lock:
+      account-lock-seconds: ${TXN_ACCOUNT_LOCK_SECONDS}
+    rate-limit:
+      create-per-minute-user: ${TXN_RATE_CREATE_USER_PER_MINUTE}
+      create-per-minute-ip: ${TXN_RATE_IP_PER_MINUTE}
+      reverse-per-10m-user: ${TXN_RATE_REVERSE_USER_PER_10M}
+    outbox:
+      dispatch-delay-minutes: ${TXN_OUTBOX_DISPATCH_DELAY_MS}
+    fraud:
+      high-amount-thresold: ${TXN_FRAUD_HIGH_AMOUNT_THRESHOLD}
+      velocity-window-minutes: ${TXN_FRAUD_VELOCITY_WINDOW_MINUTES}
+      velocity-txn-count-threshold: ${TXN_FRAUD_VELOCITY_COUNT_THRESHOLD}
+      velocity-block-amount-threshold: ${TXN_FRAUD_VELOCITY_BLOCK_AMOUNT_THRESHOLD}
+
